@@ -2,7 +2,7 @@ use Mix.Config
 
 # Configure your database
 config :live_view_demo, LiveViewDemo.Repo,
-  username: "postgres",
+  # username: "postgres",
   password: "postgres",
   database: "live_view_demo_dev",
   hostname: "localhost",
