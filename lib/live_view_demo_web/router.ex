@@ -17,7 +17,7 @@ defmodule LiveViewDemoWeb.Router do
   scope "/", LiveViewDemoWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    get "/", FinderController, :index
     live "/clock", ClockLive
   end
 

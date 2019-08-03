@@ -1,0 +1,6 @@
+<h2>Finder</h2>
+
+<button phx-click="display_list">List</button>
+<button phx-click="display_grid">Grid</button>
+
+<%= render(@display_template, data: @data.map_of_map) %>
