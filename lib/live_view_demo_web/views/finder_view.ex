@@ -49,10 +49,10 @@ defmodule LiveViewDemoWeb.FinderView do
 
   defp grid_view(data, path \\ [])
 
-  defp grid_view(data, path) when is_map(data) do
+  defp grid_view(data, _path) when is_map(data) do
     for {key, val} <- data do
       ~E"""
-        <a href="#" style="padding: 1rem; border: 1px solid #ccc" phx-click="cd" phx-value="<%= key %>">
+        <a href="#" style="padding: 1rem; border: 1px solid #ccc" phx-click="cd" phx-value-folder-key="<%= key %>">
           <%= key %>.folder
         </a>
       """

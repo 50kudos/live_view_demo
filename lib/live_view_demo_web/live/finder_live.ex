@@ -35,12 +35,14 @@ defmodule LiveViewDemoWeb.FinderLive do
      |> assign(:data, sample_data())}
   end
 
-  def handle_event("cd", folder, socket) do
+  def handle_event("cd", %{"folder-key" => folder}, socket) do
     {:noreply,
-     update(socket, :data, fn data -> %{data | map_of_map: cd(data.map_of_map, folder)} end)}
+     update(socket, :data, fn data ->
+       %{data | map_of_map: cd(data.map_of_map, folder)}
+     end)}
   end
 
-  def cd(source, destination) do
+  defp cd(source, destination) do
     Map.get(source, String.to_existing_atom(destination))
   end
 end
