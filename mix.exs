@@ -44,7 +44,10 @@ defmodule LiveViewDemo.MixProject do
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:calendar, "~> 0.17.6"}
+      {:calendar, "~> 0.17.6"},
+      {:ecto_enum, "~> 1.3"},
+      {:closure_table, "~> 0.1",
+       github: "50kudos/closure_table", branch: "immediate_child_or_parent"}
     ]
   end
 

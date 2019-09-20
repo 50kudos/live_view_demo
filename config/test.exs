@@ -6,7 +6,8 @@ config :live_view_demo, LiveViewDemo.Repo,
   password: "postgres",
   database: "live_view_demo_test",
   hostname: "localhost",
-  pool: Ecto.Adapters.SQL.Sandbox
+  pool: Ecto.Adapters.SQL.Sandbox,
+  migration_timestamps: [type: :utc_datetime]
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.

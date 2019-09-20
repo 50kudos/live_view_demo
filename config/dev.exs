@@ -7,7 +7,8 @@ config :live_view_demo, LiveViewDemo.Repo,
   database: "live_view_demo_dev",
   hostname: "localhost",
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  pool_size: 10,
+  migration_timestamps: [type: :utc_datetime]
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -16,7 +17,7 @@ config :live_view_demo, LiveViewDemo.Repo,
 # watchers to your application. For example, we use it
 # with webpack to recompile .js and .css sources.
 config :live_view_demo, LiveViewDemoWeb.Endpoint,
-  http: [port: 4000],
+  http: [port: 3000],
   debug_errors: true,
   code_reloader: true,
   check_origin: false,

@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Folda – Fold and Unfold structure data</title>
     <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
+    <link rel="stylesheet" href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css">
   </head>
-  <body>
-    <main role="main">
+  <body class="antialiased">
+    <main role="main" class="flex justify-center min-h-screen">
       <p role="alert"><%= get_flash(@conn, :info) %></p>
       <p role="alert"><%= get_flash(@conn, :error) %></p>
       <%= render @view_module, @view_template, assigns %>
