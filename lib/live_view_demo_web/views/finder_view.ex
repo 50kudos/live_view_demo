@@ -25,7 +25,7 @@ defmodule LiveViewDemoWeb.FinderView do
     case children do
       [] ->
         ~E"""
-          <div><%= ancestor_node.key %></div>
+          <div><%= ancestor_node.key %>.<%= ancestor_node.type %></div>
         """
 
       children ->
@@ -38,7 +38,7 @@ defmodule LiveViewDemoWeb.FinderView do
         ~E"""
           <details open>
             <summary><%= ancestor_node.key %></summary>
-            <div style="padding-left: 2rem">
+            <div class="pl-5">
               <%= subtree_view %>
             </div>
           </details>
