@@ -21,7 +21,17 @@ defmodule LiveViewDemoWeb.FinderLive do
     {:ok, tree} = FschemaCT.tree(fsch.id)
 
     %{
-      tree: Map.put(tree, :ancestor, fsch.id)
+      tree: Map.put(tree, :ancestor, fsch.id),
+      opts: %{
+        selected_node: nil
+      }
     }
+  end
+
+  def handle_event("select_node", %{"node-id" => node_id}, socket) do
+    {:noreply,
+     update(socket, :data, fn data ->
+       put_in(data, [:opts, :selected_node], String.to_integer(node_id))
+     end)}
   end
 end
