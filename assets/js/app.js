@@ -19,5 +19,20 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import LiveSocket from "phoenix_live_view"
 
-let liveSocket = new LiveSocket("/live", Socket)
+import hljs from 'highlight.js/lib/highlight';
+import json from 'highlight.js/lib/languages/json';
+import 'highlight.js/styles/atom-one-dark.css';
+hljs.registerLanguage('json', json);
+
+let Hooks = {}
+  Hooks.syntaxHighlight = {
+    mounted() {
+      hljs.highlightBlock(this.el)
+    },
+    updated() {
+      hljs.highlightBlock(this.el)
+    }
+  }
+
+let liveSocket = new LiveSocket("/live", Socket, {hooks: Hooks})
 liveSocket.connect()

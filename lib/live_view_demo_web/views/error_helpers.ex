@@ -10,7 +10,7 @@ defmodule LiveViewDemoWeb.ErrorHelpers do
   """
   def error_tag(form, field) do
     Enum.map(Keyword.get_values(form.errors, field), fn error ->
-      content_tag(:span, translate_error(error), class: "help-block")
+      content_tag(:span, translate_error(error), class: "block mt-1 text-red-600")
     end)
   end
 
