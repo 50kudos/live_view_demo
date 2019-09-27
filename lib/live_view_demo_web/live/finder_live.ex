@@ -13,10 +13,37 @@ defmodule LiveViewDemoWeb.FinderLive do
   end
 
   defp initial_data do
-    unless fsch = Repo.get_by(Fschema, key: "root") do
-      {:ok, fsch} = Repo.insert(%Fschema{key: "root", type: :object})
-      {:ok, _paths} = FschemaCT.insert(fsch.id, fsch.id)
-    end
+    fsch =
+      if fsch = Repo.get_by(Fschema, key: "root") do
+        fsch
+      else
+        {:ok, fsch} = Repo.insert(%Fschema{key: "root", type: :object})
+        {:ok, _paths} = FschemaCT.insert(fsch.id, fsch.id)
+
+        {:ok, red_women} = Repo.insert(%Fschema{key: "Red Women", type: :object})
+
+        {:ok, red_women_word} =
+          Repo.insert(%Fschema{
+            key: "word",
+            type: :string,
+            assert: %{maxLength: 30, minLength: 5, pattern: "death"}
+          })
+
+        {:ok, arya} = Repo.insert(%Fschema{key: "Arya", type: :object})
+
+        {:ok, arya_word} =
+          Repo.insert(%Fschema{
+            key: "word",
+            type: :string,
+            assert: %{maxLength: 10, minLength: 1, pattern: "day"}
+          })
+
+        {:ok, _paths} = FschemaCT.insert(red_women.id, fsch.id)
+        {:ok, _paths} = FschemaCT.insert(red_women_word.id, red_women.id)
+        {:ok, _paths} = FschemaCT.insert(arya.id, fsch.id)
+        {:ok, _paths} = FschemaCT.insert(arya_word.id, arya.id)
+        fsch
+      end
 
     {:ok, tree} = FschemaCT.tree(fsch.id)
 
