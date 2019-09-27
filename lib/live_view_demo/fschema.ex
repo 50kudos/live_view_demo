@@ -13,7 +13,7 @@ defmodule LiveViewDemo.Fschema do
     embeds_one :assert, Assert do
       field :maxLength, :integer
       field :minLength, :integer
-      field :pattern, :string
+      field :pattern, :string, default: ""
     end
 
     timestamps()

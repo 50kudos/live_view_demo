@@ -26,7 +26,7 @@ defmodule LiveViewDemoWeb.FinderLive do
           Repo.insert(%Fschema{
             key: "word",
             type: :string,
-            assert: %{maxLength: 30, minLength: 5, pattern: "death"}
+            assert: %{maxLength: 30, minLength: 5, pattern: ".*death\\?$"}
           })
 
         {:ok, arya} = Repo.insert(%Fschema{key: "Arya", type: :object})
@@ -35,7 +35,7 @@ defmodule LiveViewDemoWeb.FinderLive do
           Repo.insert(%Fschema{
             key: "word",
             type: :string,
-            assert: %{maxLength: 10, minLength: 1, pattern: "day"}
+            assert: %{maxLength: 10, minLength: 1, pattern: ".*today!$"}
           })
 
         {:ok, _paths} = FschemaCT.insert(red_women.id, fsch.id)
@@ -143,10 +143,18 @@ defmodule LiveViewDemoWeb.FinderLive do
           changeset
 
         {:string, assert} ->
-          Ecto.Changeset.validate_length(changeset, field,
-            min: assert.minLength,
-            max: assert.maxLength
-          )
+          changeset
+          |> Ecto.Changeset.validate_length(field, min: assert.minLength, max: assert.maxLength)
+          |> (fn ch ->
+                case Regex.compile(assert.pattern) do
+                  {:ok, regex} ->
+                    IO.inspect(regex)
+                    Ecto.Changeset.validate_format(ch, field, regex)
+
+                  {:error, _} ->
+                    ch
+                end
+              end).()
 
         {_, _} ->
           changeset
