@@ -1,5 +1,5 @@
 defmodule LiveViewDemoWeb.FinderLive do
-  use Phoenix.LiveView, container: {:div, class: "w-full sm:w-10/12 sm:py-12"}
+  use Phoenix.LiveView, container: {:div, class: "w-full"}
   alias LiveViewDemo.{Repo, FschemaCT, Fschema}
 
   def render(assigns) do

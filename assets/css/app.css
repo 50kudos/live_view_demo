@@ -1,7 +1,3 @@
 /* This file is for your main application css. */
 
 @import "../../deps/phoenix_live_view/assets/css/live_view.css";
-
-body {
-  background-image: url("/images/main-bg.jpg");
-}
