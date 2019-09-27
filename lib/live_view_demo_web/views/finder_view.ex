@@ -19,7 +19,7 @@ defmodule LiveViewDemoWeb.FinderView do
           phx-click="select_node"
           phx-value-node-id="<%= ancestor_node.id %>"
         >
-          <%= ancestor_node.key %>.<%= ancestor_node.type %>
+          <span class="text-blue-400"><%= ancestor_node.key %></span> : <span class="text-yellow-400"><%= ancestor_node.type %></span>
         </div>
       """
     end
@@ -60,7 +60,7 @@ defmodule LiveViewDemoWeb.FinderView do
             ~E"""
               <%= label class: "flex items-center" do %>
                 <span class="mb-2 mr-4"><%= ancestor_node.key %>:</span>
-                <%= text_input(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "bg-gray-900 w-full p-1") %>
+                <%= text_input(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "bg-gray-900 w-full p-1", "phx-focus": "select_node", "phx-value-node-id": ancestor_node.id) %>
               <% end %>
               <%= error_tag(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom()) %>
             """
