@@ -42,6 +42,29 @@ defmodule LiveViewDemoWeb.FinderLive do
         {:ok, _paths} = FschemaCT.insert(red_women_word.id, red_women.id)
         {:ok, _paths} = FschemaCT.insert(arya.id, fsch.id)
         {:ok, _paths} = FschemaCT.insert(arya_word.id, arya.id)
+
+        {:ok, wolves} = Repo.insert(%Fschema{key: "wolves", type: :array})
+        {:ok, wolf} = Repo.insert(%Fschema{key: "wolf", type: :object})
+
+        {:ok, wolfe_name} = Repo.insert(%Fschema{key: "name", type: :string})
+        {:ok, allegiance} = Repo.insert(%Fschema{key: "allegiance", type: :string})
+
+        {:ok, appeared_in} =
+          Repo.insert(%Fschema{
+            key: "appeared in eps",
+            type: :integer,
+            assert: %{minimum: 1, maximum: 5}
+          })
+
+        {:ok, status} = Repo.insert(%Fschema{key: "status", type: :boolean})
+
+        {:ok, _paths} = FschemaCT.insert(wolves.id, fsch.id)
+        {:ok, _paths} = FschemaCT.insert(wolf.id, wolves.id)
+        {:ok, _paths} = FschemaCT.insert(wolfe_name.id, wolf.id)
+        {:ok, _paths} = FschemaCT.insert(allegiance.id, wolf.id)
+        {:ok, _paths} = FschemaCT.insert(appeared_in.id, wolf.id)
+        {:ok, _paths} = FschemaCT.insert(status.id, wolf.id)
+
         fsch
       end
 
@@ -137,10 +160,23 @@ defmodule LiveViewDemoWeb.FinderLive do
     params
     |> Enum.reduce(changeset, fn {field, val}, changeset ->
       fsch = Map.get(fschs, field)
+      IO.inspect(fsch)
 
       case {fsch.type, fsch.assert} do
+        {:boolean, _} ->
+          changeset
+          |> Ecto.Changeset.cast(Map.take(params, [field]), [field])
+
         {_, nil} ->
           changeset
+
+        {:integer, assert} ->
+          changeset
+          |> Ecto.Changeset.cast(Map.take(params, [field]), [field])
+          |> Ecto.Changeset.validate_number(field,
+            greater_than_or_equal_to: assert.minimum,
+            less_than_or_equal_to: assert.maximum
+          )
 
         {:string, assert} ->
           changeset
@@ -148,7 +184,6 @@ defmodule LiveViewDemoWeb.FinderLive do
           |> (fn ch ->
                 case Regex.compile(assert.pattern) do
                   {:ok, regex} ->
-                    IO.inspect(regex)
                     Ecto.Changeset.validate_format(ch, field, regex)
 
                   {:error, _} ->

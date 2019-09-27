@@ -14,6 +14,9 @@ defmodule LiveViewDemo.Fschema do
       field :maxLength, :integer
       field :minLength, :integer
       field :pattern, :string, default: ""
+
+      field :maximum, :integer
+      field :minimum, :integer
     end
 
     timestamps()
@@ -30,6 +33,6 @@ defmodule LiveViewDemo.Fschema do
 
   defp assert_changeset(assert, attrs \\ %{}) do
     assert
-    |> cast(attrs, [:maxLength, :minLength, :pattern])
+    |> cast(attrs, [:maxLength, :minLength, :pattern, :maximum, :minimum])
   end
 end

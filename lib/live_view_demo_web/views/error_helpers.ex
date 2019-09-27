@@ -8,9 +8,9 @@ defmodule LiveViewDemoWeb.ErrorHelpers do
   @doc """
   Generates tag for inlined form input errors.
   """
-  def error_tag(form, field) do
+  def error_tag(form, field, opts \\ []) do
     Enum.map(Keyword.get_values(form.errors, field), fn error ->
-      content_tag(:span, translate_error(error), class: "block mt-1 text-red-600")
+      content_tag(:span, translate_error(error), opts)
     end)
   end
 
