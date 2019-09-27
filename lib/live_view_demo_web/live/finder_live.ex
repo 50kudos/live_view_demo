@@ -14,10 +14,10 @@ defmodule LiveViewDemoWeb.FinderLive do
 
   defp initial_data do
     fsch =
-      if fsch = Repo.get_by(Fschema, key: "root") do
+      if fsch = Repo.get_by(Fschema, key: "v1") do
         fsch
       else
-        {:ok, fsch} = Repo.insert(%Fschema{key: "root", type: :object})
+        {:ok, fsch} = Repo.insert(%Fschema{key: "v1", type: :object})
         {:ok, _paths} = FschemaCT.insert(fsch.id, fsch.id)
 
         {:ok, red_women} = Repo.insert(%Fschema{key: "Red Women", type: :object})
