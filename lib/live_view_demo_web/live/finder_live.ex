@@ -1,6 +1,7 @@
 defmodule LiveViewDemoWeb.FinderLive do
   use Phoenix.LiveView, container: {:div, class: "w-full"}
-  alias LiveViewDemo.{Repo, FschemaCT, Fschema}
+  alias LiveViewDemo.{Repo, FschemaCT, Fschema, TreePath}
+  require Ecto.Query
 
   def render(assigns) do
     Phoenix.View.render(LiveViewDemoWeb.FinderView, "index.html", assigns)
@@ -69,6 +70,13 @@ defmodule LiveViewDemoWeb.FinderLive do
       end
 
     {:ok, tree} = FschemaCT.tree(fsch.id)
+
+    tree =
+      Map.update!(tree, :paths, fn paths ->
+        Enum.map(paths, fn [a, d] ->
+          Repo.one(Ecto.Query.from(TreePath, where: [ancestor: ^a, descendant: ^d]))
+        end)
+      end)
 
     id_values =
       Enum.reduce(tree.nodes, %{}, fn {id, record}, acc ->
@@ -160,7 +168,6 @@ defmodule LiveViewDemoWeb.FinderLive do
     params
     |> Enum.reduce(changeset, fn {field, val}, changeset ->
       fsch = Map.get(fschs, field)
-      IO.inspect(fsch)
 
       case {fsch.type, fsch.assert} do
         {:boolean, _} ->

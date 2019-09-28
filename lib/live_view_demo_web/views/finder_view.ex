@@ -13,9 +13,11 @@ defmodule LiveViewDemoWeb.FinderView do
 
   def render("tree.html", assigns) do
     leaf_wrapper = fn ancestor_node, depth, opts ->
+      selected? = opts.selected_node.id == ancestor_node.id
+
       ~E"""
         <div
-          class="<%= if(opts.selected_node.id == ancestor_node.id, do: 'bg-gray-700', else: 'hover:bg-gray-800') %> cursor-pointer"
+          class="<%= if(selected?, do: 'bg-blue-900', else: 'hover:bg-gray-800') %> cursor-pointer"
           style="padding-left: <%= 1.25 * depth %>rem"
           phx-click="select_node"
           phx-value-node-id="<%= ancestor_node.id %>"
@@ -26,10 +28,12 @@ defmodule LiveViewDemoWeb.FinderView do
     end
 
     node_wrapper = fn ancestor_node, subtree_view, depth, opts ->
+      selected? = opts.selected_node.id == ancestor_node.id
+
       ~E"""
         <details open>
           <summary
-            class="<%= if(opts.selected_node.id == ancestor_node.id, do: 'bg-gray-700', else: 'hover:bg-gray-800') %> cursor-pointer"
+            class="<%= if(selected?, do: 'bg-blue-900', else: 'hover:bg-gray-800') %> cursor-pointer"
             style="padding-left: <%= 1.25 * depth %>rem"
             phx-click="select_node"
             phx-value-node-id="<%= ancestor_node.id %>"
@@ -41,7 +45,7 @@ defmodule LiveViewDemoWeb.FinderView do
             <% end %>
           </summary>
           <div>
-            <%= subtree_view %>
+            <%= subtree_view.(opts) %>
           </div>
         </details>
       """
@@ -64,7 +68,7 @@ defmodule LiveViewDemoWeb.FinderView do
           :string ->
             ~E"""
               <%= label class: "flex items-center my-1" do %>
-                <span class="mr-4 flex-1"><%= ancestor_node.key %>:</span>
+                <span class="mr-4 flex-1 text-blue-400"><%= ancestor_node.key %>:</span>
                 <%= text_input(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "bg-gray-900 w-5/6 p-1", "phx-focus": "select_node", "phx-value-node-id": ancestor_node.id) %>
               <% end %>
               <%= error_tag(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "block mt-1 text-red-600 w-5/6 self-end") %>
@@ -73,7 +77,7 @@ defmodule LiveViewDemoWeb.FinderView do
           :integer ->
             ~E"""
               <%= label class: "flex items-center my-1" do %>
-                <span class="mr-4 flex-1"><%= ancestor_node.key %>:</span>
+                <span class="mr-4 flex-1 text-blue-400"><%= ancestor_node.key %>:</span>
                 <%= number_input(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "bg-gray-900 p-1 w-5/6", "phx-focus": "select_node", "phx-value-node-id": ancestor_node.id) %>
                 <% end %>
               <%= error_tag(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "block mt-1 text-red-600 w-5/6 self-end") %>
@@ -82,7 +86,7 @@ defmodule LiveViewDemoWeb.FinderView do
           :boolean ->
             ~E"""
               <%= label class: "flex items-center my-1" do %>
-                <span class="w-1/6"><%= ancestor_node.key %>:</span>
+                <span class="w-1/6 text-blue-400"><%= ancestor_node.key %>:</span>
                 <%= checkbox(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "bg-gray-900 p-1", "phx-focus": "select_node", "phx-value-node-id": ancestor_node.id) %>
               <% end %>
             """
@@ -98,13 +102,25 @@ defmodule LiveViewDemoWeb.FinderView do
       """
     end
 
-    node_wrapper = fn ancestor_node, subtree_view, _depth, _opts ->
-      ~E"""
-        <h1 class="my-4"><%= ancestor_node.key %></h1>
-        <div>
-          <%= subtree_view %>
-        </div>
-      """
+    node_wrapper = fn
+      %{type: :object} = ancestor_node, subtree_view, _depth, opts ->
+        ~E"""
+          <h1 class="my-4"><%= ancestor_node.key %></h1>
+          <div>
+            <%= subtree_view.(opts) %>
+          </div>
+        """
+
+      %{type: :array} = ancestor_node, subtree_view, _depth, opts ->
+        ~E"""
+          <h1 class="my-4"><%= ancestor_node.key %></h1>
+          <div>
+            <%= subtree_view.(opts) %>
+          </div>
+        """
+
+      _ancestor_node, _subtree_view, _depth, _opts ->
+        {:safe, ""}
     end
 
     assigns =
@@ -137,9 +153,9 @@ defmodule LiveViewDemoWeb.FinderView do
     end
 
     node_wrapper = fn
-      ancestor_node, subtree_view, _depth, _opts ->
+      ancestor_node, subtree_view, _depth, opts ->
         subtree_view =
-          subtree_view
+          subtree_view.(opts)
           |> Enum.reduce(%{}, fn val, acc -> Map.merge(val, acc) end)
 
         Map.put(%{}, ancestor_node.key, subtree_view)
@@ -151,21 +167,26 @@ defmodule LiveViewDemoWeb.FinderView do
   defp tree_view(%{nodes: nodes, paths: paths, ancestor: ancestor_} = tree, depth, opts) do
     ancestor_node = Map.get(nodes, ancestor_)
 
-    {:ok, children} = FschemaCT.tree(ancestor_, depth: 1)
-    children_paths = Enum.filter(children.paths, fn [a, d] -> a != d end)
+    children_paths =
+      paths
+      |> Enum.filter(fn %_{ancestor: a, descendant: d, depth: depth} ->
+        a != d && a == ancestor_ && a && depth == 1
+      end)
+      |> Enum.map(fn tree_path -> [tree_path.ancestor, tree_path.descendant] end)
 
     case children_paths do
       [] ->
         opts.leaf_wrapper.(ancestor_node, depth, opts)
 
       children ->
-        subtree_view =
+        subtree_view_fn = fn opts_ ->
           children
           |> Enum.map(fn [_, descendant] ->
-            tree_view(%{tree | ancestor: descendant}, depth + 1, opts)
+            tree_view(%{tree | ancestor: descendant}, depth + 1, opts_)
           end)
+        end
 
-        opts.node_wrapper.(ancestor_node, subtree_view, depth, opts)
+        opts.node_wrapper.(ancestor_node, subtree_view_fn, depth, opts)
     end
   end
 end

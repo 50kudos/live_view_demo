@@ -19,6 +19,10 @@ defmodule LiveViewDemo.Fschema do
       field :minimum, :integer
     end
 
+    # embeds_many :values, Value do
+
+    # end
+
     timestamps()
   end
 
