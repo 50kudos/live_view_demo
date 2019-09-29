@@ -243,7 +243,7 @@ defmodule LiveViewDemoWeb.FinderView do
 
       %{type: :array} = ancestor_node, subtree_view, _depth, opts ->
         indexed_id_values = Map.get(id_values, "#{ancestor_node.id}" |> String.to_atom())
-        subtree_view = subtree_view.(Map.put(opts, :items, indexed_id_values))
+        [subtree_view] = subtree_view.(Map.put(opts, :items, indexed_id_values))
         Map.put(%{}, ancestor_node.key, subtree_view)
     end
 
