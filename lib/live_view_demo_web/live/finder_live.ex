@@ -15,10 +15,10 @@ defmodule LiveViewDemoWeb.FinderLive do
 
   defp initial_data do
     fsch =
-      if fsch = Repo.get_by(Fschema, key: "v1") do
+      if fsch = Repo.get_by(Fschema, key: "v0.2") do
         fsch
       else
-        {:ok, fsch} = Repo.insert(%Fschema{key: "v1", type: :object})
+        {:ok, fsch} = Repo.insert(%Fschema{key: "v0.2", type: :object})
         {:ok, _paths} = FschemaCT.insert(fsch.id, fsch.id)
 
         {:ok, red_women} = Repo.insert(%Fschema{key: "Red Women", type: :object})
@@ -52,12 +52,12 @@ defmodule LiveViewDemoWeb.FinderLive do
 
         {:ok, appeared_in} =
           Repo.insert(%Fschema{
-            key: "appeared in eps",
+            key: "appeared in eps (count)",
             type: :integer,
             assert: %{minimum: 1, maximum: 5}
           })
 
-        {:ok, status} = Repo.insert(%Fschema{key: "status", type: :boolean})
+        {:ok, status} = Repo.insert(%Fschema{key: "alive?", type: :boolean})
 
         {:ok, _paths} = FschemaCT.insert(wolves.id, fsch.id)
         {:ok, _paths} = FschemaCT.insert(wolf.id, wolves.id)
@@ -139,7 +139,7 @@ defmodule LiveViewDemoWeb.FinderLive do
 
   def handle_event("output", %{"output" => outputs}, socket) do
     types_params = to_types_params(outputs, socket.assigns.data.tree.nodes)
-    output_changeset = output_changeset(types_params)
+    output_changeset = output_changeset(types_params, socket.assigns.data.tree.nodes)
 
     {:noreply,
      update(socket, :data, fn data ->
@@ -160,7 +160,9 @@ defmodule LiveViewDemoWeb.FinderLive do
     end)
   end
 
-  defp output_changeset([fschs, params]) do
+  defp output_changeset(_, nodes \\ [])
+
+  defp output_changeset([fschs, params], nodes) do
     types = Enum.reduce(fschs, %{}, fn {id, fsch}, acc -> Map.put(acc, id, fsch.type) end)
     changeset = Ecto.Changeset.change({%{}, types}, params)
     changeset = %{changeset | action: :replace}

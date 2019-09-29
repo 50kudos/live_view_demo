@@ -62,58 +62,97 @@ defmodule LiveViewDemoWeb.FinderView do
   end
 
   def render("output.html", assigns) do
-    leaf_wrapper = fn ancestor_node, _depth, opts ->
-      leaf_node =
-        case ancestor_node.type do
-          :string ->
-            ~E"""
-              <%= label class: "flex items-center my-1" do %>
-                <span class="mr-4 flex-1 text-blue-400"><%= ancestor_node.key %>:</span>
-                <%= text_input(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "bg-gray-900 w-5/6 p-1", "phx-focus": "select_node", "phx-value-node-id": ancestor_node.id) %>
-              <% end %>
-              <%= error_tag(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "block mt-1 text-red-600 w-5/6 self-end") %>
-            """
+    leaf_wrapper = fn
+      ancestor_node, _depth, %{ui: :table} = opts ->
+        ~E"""
+          <%= text_input(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "bg-gray-900 p-1 w-full border border-gray-800", "phx-focus": "select_node", "phx-value-node-id": ancestor_node.id) %>
+        """
 
-          :integer ->
-            ~E"""
-              <%= label class: "flex items-center my-1" do %>
-                <span class="mr-4 flex-1 text-blue-400"><%= ancestor_node.key %>:</span>
-                <%= number_input(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "bg-gray-900 p-1 w-5/6", "phx-focus": "select_node", "phx-value-node-id": ancestor_node.id) %>
+      ancestor_node, _depth, opts ->
+        leaf_node =
+          case ancestor_node.type do
+            :string ->
+              ~E"""
+                <%= label class: "flex items-center my-1" do %>
+                  <span class="mr-4 flex-1 text-blue-400"><%= ancestor_node.key %>:</span>
+                  <%= text_input(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "bg-gray-900 w-5/6 p-1", "phx-focus": "select_node", "phx-value-node-id": ancestor_node.id) %>
                 <% end %>
-              <%= error_tag(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "block mt-1 text-red-600 w-5/6 self-end") %>
-            """
+                <%= error_tag(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "block mt-1 text-red-600 w-5/6 self-end") %>
+              """
 
-          :boolean ->
-            ~E"""
-              <%= label class: "flex items-center my-1" do %>
-                <span class="w-1/6 text-blue-400"><%= ancestor_node.key %>:</span>
-                <%= checkbox(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "bg-gray-900 p-1", "phx-focus": "select_node", "phx-value-node-id": ancestor_node.id) %>
-              <% end %>
-            """
+            :integer ->
+              ~E"""
+                <%= label class: "flex items-center my-1" do %>
+                  <span class="mr-4 flex-1 text-blue-400"><%= ancestor_node.key %>:</span>
+                  <%= number_input(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "bg-gray-900 p-1 w-5/6", "phx-focus": "select_node", "phx-value-node-id": ancestor_node.id) %>
+                  <% end %>
+                <%= error_tag(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "block mt-1 text-red-600 w-5/6 self-end") %>
+              """
 
-          _ ->
-            {:safe, ""}
-        end
+            :boolean ->
+              ~E"""
+                <%= label class: "flex items-center my-1" do %>
+                  <span class="w-1/6 text-blue-400"><%= ancestor_node.key %>:</span>
+                  <%= checkbox(opts.f, Integer.to_string(ancestor_node.id) |> String.to_atom(), class: "bg-gray-900 p-1", "phx-focus": "select_node", "phx-value-node-id": ancestor_node.id) %>
+                <% end %>
+              """
 
-      ~E"""
-        <div class="flex flex-col">
-          <%= leaf_node %>
-        </div>
-      """
+            _ ->
+              {:safe, ""}
+          end
+
+        ~E"""
+          <div class="flex flex-col">
+            <%= leaf_node %>
+          </div>
+        """
     end
 
     node_wrapper = fn
+      ancestor_node, subtree_view, _, %{ui: :table} = opts ->
+        {:ok, children} = FschemaCT.descendants(ancestor_node.id, depth: 1, nodes: true)
+
+        records =
+          [1, 2]
+          |> Enum.with_index()
+          |> Enum.map(fn {record, index} ->
+            opts =
+              opts
+              |> put_in([:f], %{opts.f | name: opts.f.name <> "[#{index}]"})
+
+            ~E"""
+              <article class="flex">
+                <%= subtree_view.(opts) %>
+              </article>
+            """
+          end)
+
+        ~E"""
+          <header class="flex justify-around mb-2">
+            <%= for child <- children do %>
+              <span class="text-blue-400"><%= child.key %></span>
+            <% end %>
+          </header>
+
+          <%= records %>
+        """
+
       %{type: :object} = ancestor_node, subtree_view, _depth, opts ->
         ~E"""
-          <h1 class="my-4"><%= ancestor_node.key %></h1>
+          <h1 class="my-1 font-semibold"><%= ancestor_node.key %></h1>
           <div>
             <%= subtree_view.(opts) %>
           </div>
         """
 
       %{type: :array} = ancestor_node, subtree_view, _depth, opts ->
+        opts =
+          opts
+          |> put_in([:f], %{opts.f | name: opts.f.name <> "[#{ancestor_node.id}]"})
+          |> put_in([:ui], :table)
+
         ~E"""
-          <h1 class="my-4"><%= ancestor_node.key %></h1>
+          <h1 class="my-1 font-semibold"><%= ancestor_node.key %></h1>
           <div>
             <%= subtree_view.(opts) %>
           </div>
@@ -143,21 +182,68 @@ defmodule LiveViewDemoWeb.FinderView do
     """
   end
 
+  # Bypass changeset validation here since (ecto)schemaless doesn't work with embed.
+  # So the form validation is not working for embed currently.
+  # We would have to change underline validator and data structure actually!
   def render_map(tree, id_values) do
-    leaf_wrapper = fn ancestor_node, _depth, opts ->
-      Map.put(
-        %{},
-        ancestor_node.key,
-        Map.get(id_values, "#{ancestor_node.id}" |> String.to_atom())
-      )
+    leaf_wrapper = fn
+      ancestor_node, _depth, %{id_vals: id_vals} ->
+        value = Map.get(id_vals, "#{ancestor_node.id}")
+
+        if value == "" do
+          Map.put(%{}, ancestor_node.key, value)
+        else
+          case ancestor_node do
+            %{type: :boolean} ->
+              case Ecto.Type.cast(:boolean, value) do
+                {:ok, val} ->
+                  Map.put(%{}, ancestor_node.key, val)
+
+                :error ->
+                  Map.put(%{}, ancestor_node.key, value)
+              end
+
+            %{type: :integer} ->
+              case Ecto.Type.cast(:integer, value) do
+                {:ok, val} ->
+                  Map.put(%{}, ancestor_node.key, val)
+
+                :error ->
+                  Map.put(%{}, ancestor_node.key, value)
+              end
+
+            _ ->
+              Map.put(%{}, ancestor_node.key, value)
+          end
+        end
+
+      ancestor_node, _depth, opts ->
+        value = Map.get(id_values, "#{ancestor_node.id}" |> String.to_atom())
+        Map.put(%{}, ancestor_node.key, value)
     end
 
     node_wrapper = fn
-      ancestor_node, subtree_view, _depth, opts ->
+      ancestor_node, subtree_view, _depth, %{items: nil} = opts ->
+        subtree_view.(opts)
+        |> Enum.reduce(%{}, fn val, acc -> Map.merge(val, acc) end)
+
+      ancestor_node, subtree_view, _depth, %{items: indexed_id_values} = opts ->
+        indexed_id_values
+        |> Enum.map(fn {_index, id_vals} ->
+          subtree_view.(Map.put(opts, :id_vals, id_vals))
+          |> Enum.reduce(%{}, fn val, acc -> Map.merge(val, acc) end)
+        end)
+
+      %{type: :object} = ancestor_node, subtree_view, _depth, opts ->
         subtree_view =
           subtree_view.(opts)
           |> Enum.reduce(%{}, fn val, acc -> Map.merge(val, acc) end)
 
+        Map.put(%{}, ancestor_node.key, subtree_view)
+
+      %{type: :array} = ancestor_node, subtree_view, _depth, opts ->
+        indexed_id_values = Map.get(id_values, "#{ancestor_node.id}" |> String.to_atom())
+        subtree_view = subtree_view.(Map.put(opts, :items, indexed_id_values))
         Map.put(%{}, ancestor_node.key, subtree_view)
     end
 
