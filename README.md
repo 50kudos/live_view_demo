@@ -1,4 +1,4 @@
-# This project is being rewritten in https://github.com/50kudos/fset repo.
+# This project is rewritten in https://github.com/50kudos/fset repo.
 ---
 
 # Fprefs
