@@ -1,3 +1,6 @@
+# This project is being rewritten in https://github.com/50kudos/fset repo.
+---
+
 # Fprefs
 
 This is my entry in [Phoenix Phrenzy](https://phoenixphrenzy.com), showing off what [Phoenix](https://phoenixframework.org/) and [LiveView](https://github.com/phoenixframework/phoenix_live_view) can do.
